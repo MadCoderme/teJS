@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Page title</title>
+</head>
+       
+<body>
+    <canvas height="500" width="500" id ="c"></canvas>
+</body>
+
+
+<script>
+    const canvas = document.getElementById('c')
+    const scene = new Scene(canvas)
+    canvas.height = 500
+    canvas.width =  500
+    
+    let bg = scene.newTexture('https://pngimage.net/wp-content/uploads/2018/06/flappy-bird-background-png-2.png')
+    let t = scene.newTexture("https://i.ibb.co/RDLqwmx/Screenshot-20220922-221622-Chrome-removebg-preview.png")
+    
+    scene.newSprite(bg, 0,0,500,500)
+    let img = scene.newSprite(t, 70, 100, 50, 30)
+    
+    let b1 = scene.newRect(50, 180, 200, 0, "#663300")    
+    let b2 = scene.newRect(50, 250, 350, 0, "#663300")    
+    let b3 = scene.newRect(50, 200, 480, 300, "#663300")    
+    let b4 = scene.newRect(50, 150, 700, 350, "#663300") 
+    let b5 = scene.newRect(50, 260, 700, 0, "#663300") 
+    
+    let score = scene.newText("Score: 0", "20px Arial", 20, 50)
+    
+    
+    let levels = [b1, b2, b3, b4, b5]
+    for(let i =0; i < levels.length; i++){
+      scene.enableCollision(img, levels[i])
+      recycleLevel(levels[i])
+    }
+    
+    let heights = [180, 250, 200, 150, 260]
+    let scoreVal = 0
+    let scoreInt = setInterval(()=>{
+      scoreVal += 10
+      scene.updateText(score, "Score: " + scoreVal)
+    }, 500)
+    
+    function recycleLevel(i){
+     scene.moveObject(i, -50, 
+            scene.getProperties(i).y,
+            12, 0).then(()=>{
+                
+                scene.setPosition(i, 500,
+                     scene.getProperties(i).y)
+                scene.setSize(i, 50,
+                    heights[Math.floor(Math.random()*heights.length)])
+                recycleLevel(i)
+            })
+    }
+    
+    let isEnd = false
+    
+    function stopAllAnimation() {
+        isEnd = true
+        clearInterval(scoreInt)
+        scene.stopAnimation(img)
+        for(let i =0; i < levels.length; i++){
+          scene.stopAnimation(levels[i])
+        }
+        scene.newRect(500,500,0,0, "rgba(220, 210, 200, 0.7)")
+        scene.newText("Game Over :(", "30px Arial", 160, 200)
+        scene.newText("Score: " + scoreVal, "30px Arial", 160, 250)
+    }
+    
+    scene.moveObject(img, scene.getProperties(img).x, 500, 0, 10)
+    scene.addAcceleration(img, 0 , 5)
+    
+    
+    document.addEventListener('gameObjectClicked', (e) => {
+        if(e.detail.index == 0 && !isEnd){
+            scene.stopAnimation(img)
+            setTimeout(()=>{
+                scene.moveObject(img, 
+                  scene.getProperties(img).x,
+                  scene.getProperties(img).y-50, 
+                0, 50).then(()=>{
+                    scene.moveObject(img,
+                        scene.getProperties(img).x, 500, 0, 10)
+                })
+            }, 10)
+            
+            
+        }
+    })
+    
+    document.addEventListener('collision', (e) => {
+        stopAllAnimation()
+    })
+</script>
+
+</html>
